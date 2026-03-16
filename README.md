@@ -150,7 +150,7 @@ used is always included in the `evidence` field.
 ## Running Locally
 ```bash
 # Clone the repo
-git clone https://github.com/x/invoice-review-service
+git clone https://github.com/shahbazdalazyprogrammer/invoice-review-service.git
 cd invoice-review-service
 
 # Create and activate virtual environment
