@@ -54,7 +54,7 @@ invoice-review-service/
 ### `GET /health`
 Returns service health status.
 ```bash
-curl https://x.onrender.com/health
+curl https://invoice-review-service.onrender.com/health
 ```
 ```json
 {"status": "ok"}
@@ -64,7 +64,7 @@ curl https://x.onrender.com/health
 ### `POST /reviews`
 Submits an invoice for review. Applies deterministic rules and returns a decision.
 ```bash
-curl -X POST https://x.onrender.com/reviews \
+curl -X POST https://invoice-review-service.onrender.com/reviews \
   -H "Content-Type: application/json" \
   -d '{
     "invoice_number": "INV-123",
@@ -100,7 +100,7 @@ Example: `"rules_text": "max_amount=5000"` sets the threshold to 5000.
 ### `GET /reviews/{id}`
 Fetches a stored review by ID.
 ```bash
-curl https://x.onrender.com/reviews/1
+curl https://invoice-review-service.onrender.com/reviews/1
 ```
 
 Returns `404` if the ID does not exist.
@@ -110,7 +110,7 @@ Returns `404` if the ID does not exist.
 ### `GET /reviews`
 Lists all stored reviews, ordered by most recent first.
 ```bash
-curl https://x.onrender.com/reviews
+curl https://invoice-review-service.onrender.com/reviews
 ```
 ```json
 [
@@ -185,14 +185,8 @@ never touched during testing.
 
 ## Deployment
 
-Deployed on **Render** as a Python web service.
-
-**Environment variables set in Render dashboard:**
-
-| Variable | Value |
-|---|---|
-| `DATABASE_URL` | PostgreSQL connection string (Connection values from Render) |
-| `AMOUNT_THRESHOLD` | `1000.0` |
+Deployed on **Render** as a Python web service and to use openApi UI.
+https://invoice-review-service.onrender.com/docs
 
 **Start command:**
 ```
