@@ -2,6 +2,8 @@ import logging
 import app.models
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from dotenv import load_dotenv
 from app.db import Base, engine
 from app.api.routes_reviews import router as reviews_router
@@ -35,5 +37,13 @@ app = FastAPI(
     version="1.0.0",
     lifespan=lifespan,
 )
+
+# Serve frontend
+app.mount("/static", StaticFiles(directory="app/static"), name="static")
+
+@app.get("/", include_in_schema=False)
+def serve_frontend():
+    """Serves the frontend UI at the root URL."""
+    return FileResponse("app/static/index.html")
 
 app.include_router(reviews_router)

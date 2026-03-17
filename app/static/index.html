@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Invoice Review Service</title>
+  <style>
+    /*   Reset & Base */
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #f0f2f5;
+      color: #1a1a2e;
+      min-height: 100vh;
+    }
+
+    /* Header */
+    header {
+      background: #1a1a2e;
+      color: white;
+      padding: 1.25rem 2rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    header h1 {
+      font-size: 1.3rem;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+    }
+
+    header span {
+      font-size: 0.78rem;
+      background: #16213e;
+      color: #a0aec0;
+      padding: 0.25rem 0.75rem;
+      border-radius: 999px;
+      margin-left: auto;
+    }
+
+    /* Layout */
+    main {
+      max-width: 1100px;
+      margin: 2rem auto;
+      padding: 0 1.5rem;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+    }
+
+    @media (max-width: 768px) {
+      main {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Cards */
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 1.75rem;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+    }
+
+    .card h2 {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #1a1a2e;
+      margin-bottom: 1.25rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 2px solid #f0f2f5;
+    }
+
+    /* Form */
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.85rem;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+
+    .form-group.full {
+      grid-column: 1 / -1;
+    }
+
+    label {
+      font-size: 0.78rem;
+      font-weight: 500;
+      color: #4a5568;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+
+    input,
+    select,
+    textarea {
+      padding: 0.6rem 0.85rem;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      color: #1a1a2e;
+      background: #fafafa;
+      transition: border-color 0.2s;
+      width: 100%;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      outline: none;
+      border-color: #4f46e5;
+      background: white;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 70px;
+      font-family: inherit;
+    }
+
+    /* Button */
+    button {
+      cursor: pointer;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      transition: all 0.2s;
+    }
+
+    .btn-primary {
+      width: 100%;
+      padding: 0.75rem;
+      background: #4f46e5;
+      color: white;
+      margin-top: 1rem;
+    }
+
+    .btn-primary:hover {
+      background: #4338ca;
+    }
+
+    .btn-primary:disabled {
+      background: #a5b4fc;
+      cursor: not-allowed;
+    }
+
+    .btn-sm {
+      padding: 0.35rem 0.75rem;
+      background: #f0f2f5;
+      color: #4a5568;
+      font-size: 0.78rem;
+    }
+
+    .btn-sm:hover {
+      background: #e2e8f0;
+    }
+
+    /* Decision Result */
+    #result {
+      display: none;
+      margin-top: 1.25rem;
+      border-radius: 10px;
+      padding: 1.25rem;
+      border-left: 4px solid;
+    }
+
+    #result.PASS {
+      background: #f0fdf4;
+      border-color: #22c55e;
+    }
+
+    #result.FAIL {
+      background: #fef2f2;
+      border-color: #ef4444;
+    }
+
+    #result.NEEDS_INFO {
+      background: #fffbeb;
+      border-color: #f59e0b;
+    }
+
+    .result-header {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .badge {
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 0.25rem 0.65rem;
+      border-radius: 999px;
+      letter-spacing: 0.5px;
+    }
+
+    .badge.PASS {
+      background: #22c55e;
+      color: white;
+    }
+
+    .badge.FAIL {
+      background: #ef4444;
+      color: white;
+    }
+
+    .badge.NEEDS_INFO {
+      background: #f59e0b;
+      color: white;
+    }
+
+    .result-id {
+      font-size: 0.78rem;
+      color: #6b7280;
+      margin-left: auto;
+    }
+
+    .result-reasons {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+
+    .result-reasons li {
+      font-size: 0.85rem;
+      color: #374151;
+      padding-left: 1rem;
+      position: relative;
+    }
+
+    .result-reasons li::before {
+      content: "~";
+      position: absolute;
+      left: 0;
+      color: #9ca3af;
+    }
+
+    /* History Table */
+    .history-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.25rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 2px solid #f0f2f5;
+    }
+
+    .history-header h2 {
+      margin: 0;
+      padding: 0;
+      border: none;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+
+    th {
+      text-align: left;
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      color: #6b7280;
+      padding: 0.5rem 0.75rem;
+      border-bottom: 1.5px solid #f0f2f5;
+    }
+
+    td {
+      padding: 0.65rem 0.75rem;
+      border-bottom: 1px solid #f9fafb;
+      color: #374151;
+      vertical-align: middle;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tr:hover td {
+      background: #fafafa;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 2rem;
+      color: #9ca3af;
+      font-size: 0.85rem;
+    }
+
+    /* Loading spinner */
+    .spinner {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 2px solid #ffffff55;
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+      vertical-align: middle;
+      margin-right: 6px;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* Error toast */
+    #toast {
+      display: none;
+      position: fixed;
+      bottom: 1.5rem;
+      right: 1.5rem;
+      background: #1a1a2e;
+      color: white;
+      padding: 0.75rem 1.25rem;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      z-index: 1000;
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <h1>Invoice Review Service</h1>
+    <span>Rule-based Invoice Review</span>
+  </header>
+
+  <main>
+
+    <!-- Left: Submit Form -->
+    <div class="card">
+      <h2>Submit Invoice for Review</h2>
+
+      <div class="form-grid">
+
+        <div class="form-group">
+          <label>Invoice Number</label>
+          <input type="text" id="invoice_number" placeholder="INV-001" />
+        </div>
+
+        <div class="form-group">
+          <label>Invoice Date</label>
+          <input type="date" id="invoice_date" />
+        </div>
+
+        <div class="form-group">
+          <label>Vendor Name</label>
+          <input type="text" id="vendor_name" placeholder="Acme GmbH" />
+        </div>
+
+        <div class="form-group">
+          <label>Customer Name</label>
+          <input type="text" id="customer_name" placeholder="Beta Corp" />
+        </div>
+
+        <div class="form-group">
+          <label>Total Amount</label>
+          <input type="number" id="total_amount" placeholder="500.00" step="0.01" />
+        </div>
+
+        <div class="form-group">
+          <label>Currency</label>
+          <select id="currency">
+            <option value="">— Select —</option>
+            <option value="EUR">EUR</option>
+            <option value="USD">USD</option>
+            <option value="GBP">GBP</option>
+            <option value="CHF">CHF</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Due Date</label>
+          <input type="date" id="due_date" />
+        </div>
+
+        <div class="form-group full">
+          <label>Rules Text (optional)</label>
+          <textarea id="rules_text" placeholder="e.g. max_amount=5000"></textarea>
+        </div>
+
+      </div>
+
+      <button class="btn-primary" id="submitBtn" onclick="submitInvoice()">
+        Submit for Review
+      </button>
+
+      <!-- Decision result appears here -->
+      <div id="result">
+        <div class="result-header">
+          <span class="badge" id="resultBadge"></span>
+          <span id="resultTitle"></span>
+          <span class="result-id" id="resultId"></span>
+        </div>
+        <ul class="result-reasons" id="resultReasons"></ul>
+      </div>
+
+    </div>
+
+    <!-- Right: History -->
+    <div class="card">
+      <div class="history-header">
+        <h2>Review History</h2>
+        <button class="btn-sm" onclick="loadHistory()">↻ Refresh</button>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Decision</th>
+            <th>Timestamp</th>
+          </tr>
+        </thead>
+        <tbody id="historyBody">
+          <tr>
+            <td colspan="3" class="empty-state">No reviews yet.</td>
+          </tr>
+        </tbody>
+      </table>
+      <!-- Detail panel: shown when a row is clicked -->
+      <div id="detailPanel" style="display:none; margin-top:1.25rem;">
+        <div style="
+          border-top: 2px solid #f0f2f5;
+          padding-top: 1.25rem;
+        ">
+          <div style="
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          margin-bottom: 1rem;
+        ">
+            <div style="display:flex; align-items:center; gap:0.6rem;">
+              <span class="badge" id="detailBadge"></span>
+              <strong id="detailTitle" style="font-size:0.9rem;"></strong>
+            </div>
+            <div style="display:flex; align-items:center; gap:0.75rem;">
+              <span id="detailId" style="font-size:0.78rem; color:#6b7280;"></span>
+              <button class="btn-sm" onclick="closeDetail()">✕ Close</button>
+            </div>
+          </div>
+
+          <!-- Reasons -->
+          <p style="
+            font-size:0.72rem;
+            font-weight:600;
+            text-transform:uppercase;
+            letter-spacing:0.4px;
+            color:#6b7280;
+            margin-bottom:0.5rem;
+          ">Reasons</p>
+          <ul class="result-reasons" id="detailReasons" style="margin-bottom:1rem;">
+          </ul>
+
+          <!-- Evidence -->
+          <p style="
+            font-size:0.72rem;
+            font-weight:600;
+            text-transform:uppercase;
+            letter-spacing:0.4px;
+            color:#6b7280;
+            margin-bottom:0.5rem;
+          ">Evidence</p>
+          <div id="detailEvidence" style="
+            background:#f8fafc;
+            border:1.5px solid #e2e8f0;
+            border-radius:8px;
+            padding:0.85rem 1rem;
+            font-size:0.82rem;
+            color:#374151;
+            display:grid;
+            grid-template-columns: 1fr 1fr;
+            gap:0.4rem 1.5rem;
+          "></div>
+
+          <!-- Invoice data -->
+          <p style="
+            font-size:0.72rem;
+            font-weight:600;
+            text-transform:uppercase;
+            letter-spacing:0.4px;
+            color:#6b7280;
+            margin-top:1rem;
+            margin-bottom:0.5rem;
+          ">Invoice Data</p>
+          <div id="detailInvoice" style="
+            background:#f8fafc;
+            border:1.5px solid #e2e8f0;
+            border-radius:8px;
+            padding:0.85rem 1rem;
+            font-size:0.82rem;
+            color:#374151;
+            display:grid;
+            grid-template-columns: 1fr 1fr;
+            gap:0.4rem 1.5rem;
+          "></div>
+
+          <p id="detailTimestamp" style="
+            font-size:0.75rem;
+            color:#9ca3af;
+            margin-top:0.85rem;
+            text-align:right;
+          "></p>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <div id="toast"></div>
+
+  <script>
+    // Submit invoice
+    async function submitInvoice() {
+      const btn = document.getElementById("submitBtn");
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span>Reviewing...';
+
+      // Collect form values: send null for empty fields
+      const payload = {
+        invoice_number: val("invoice_number"),
+        invoice_date: val("invoice_date"),
+        vendor_name: val("vendor_name"),
+        customer_name: val("customer_name"),
+        total_amount: floatVal("total_amount"),
+        currency: val("currency"),
+        due_date: val("due_date"),
+        rules_text: val("rules_text"),
+      };
+
+      try {
+        // POST to relative URL
+        const res = await fetch("/reviews", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) throw new Error(data.detail || "Request failed");
+
+        showResult(data);
+        loadHistory();
+
+      } catch (err) {
+        showToast("Error: " + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = "Submit for Review";
+      }
+    }
+
+    // Show decision result   
+    function showResult(data) {
+      const box = document.getElementById("result");
+      const badge = document.getElementById("resultBadge");
+      const title = document.getElementById("resultTitle");
+      const idSpan = document.getElementById("resultId");
+      const reasons = document.getElementById("resultReasons");
+
+      // Set decision class for colour coding
+      box.className = data.decision;
+      box.style.display = "block";
+
+      badge.className = "badge " + data.decision;
+      badge.textContent = data.decision;
+
+      const labels = {
+        PASS: "Invoice approved",
+        FAIL: "Invoice rejected",
+        NEEDS_INFO: "More information required",
+      };
+      title.textContent = labels[data.decision] || "";
+      idSpan.textContent = "Review #" + data.id;
+
+      // Render reasons list
+      reasons.innerHTML = data.reasons
+        .map(r => `<li>${r}</li>`)
+        .join("");
+    }
+
+    //   Load review history   ─
+    async function loadHistory() {
+      try {
+        const res = await fetch("/reviews");
+        const data = await res.json();
+        const body = document.getElementById("historyBody");
+
+        if (!data.length) {
+          body.innerHTML = `
+        <tr>
+          <td colspan="3" class="empty-state">No reviews yet.</td>
+        </tr>`;
+          return;
+        }
+
+        body.innerHTML = data.map(r => `
+      <tr
+        onclick="loadDetail(${r.id})"
+        style="cursor:pointer;"
+        title="Click to view details"
+      >
+        <td>#${r.id}</td>
+        <td><span class="badge ${r.decision}">${r.decision}</span></td>
+        <td>${formatDate(r.timestamp)}</td>
+      </tr>
+    `).join("");
+
+      } catch (err) {
+        showToast("Could not load history.");
+      }
+    }
+
+    //   Helpers      
+    function val(id) {
+      const v = document.getElementById(id).value.trim();
+      return v === "" ? null : v;
+    }
+
+    function floatVal(id) {
+      const v = document.getElementById(id).value.trim();
+      return v === "" ? null : parseFloat(v);
+    }
+
+    function formatDate(iso) {
+      return new Date(iso).toLocaleString(undefined, {
+        dateStyle: "medium",
+        timeStyle: "short",
+      });
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById("toast");
+      t.textContent = msg;
+      t.style.display = "block";
+      setTimeout(() => t.style.display = "none", 3500);
+    }
+
+    // Load history on page open     
+    loadHistory();
+
+    // Load single review detail     
+    async function loadDetail(id) {
+      try {
+        const res = await fetch(`/reviews/${id}`);
+        const data = await res.json();
+
+        if (!res.ok) throw new Error(data.detail || "Not found");
+
+        const panel = document.getElementById("detailPanel");
+        const badge = document.getElementById("detailBadge");
+        const title = document.getElementById("detailTitle");
+        const idSpan = document.getElementById("detailId");
+        const reasons = document.getElementById("detailReasons");
+        const evidence = document.getElementById("detailEvidence");
+        const invoice = document.getElementById("detailInvoice");
+        const timestamp = document.getElementById("detailTimestamp");
+
+        // Decision badge
+        badge.className = "badge " + data.decision;
+        badge.textContent = data.decision;
+
+        const labels = {
+          PASS: "Invoice approved",
+          FAIL: "Invoice rejected",
+          NEEDS_INFO: "More information required",
+        };
+        title.textContent = labels[data.decision] || "";
+        idSpan.textContent = "Review #" + data.id;
+
+        // Reasons
+        reasons.innerHTML = data.reasons
+          .map(r => `<li>${r}</li>`)
+          .join("");
+
+        // Evidence key-value pairs
+        evidence.innerHTML = Object.entries(data.evidence)
+          .map(([k, v]) => `
+        <div>
+          <span style="color:#6b7280; font-size:0.75rem;">
+            ${k.replace(/_/g, " ")}
+          </span><br/>
+          <strong>${v}</strong>
+        </div>
+      `).join("");
+
+        // Invoice data key-value pairs: filter out null values
+        const invoiceData = data.evidence.invoice_data || {};
+        invoice.innerHTML = Object.entries(data)
+          .filter(([k]) => [
+            "invoice_number", "vendor_name", "customer_name",
+            "currency", "total_amount", "invoice_date", "due_date"
+          ].includes(k) === false)
+          .length
+          ? ""
+          : "";
+
+        // Fetch full invoice fields from the evidence snapshot
+        const invoiceFields = {
+          "Invoice Number": data.evidence.invoice_number_present ? "Present" : "Missing",
+          "Vendor": data.evidence.vendor_name_present ? "Present" : "Missing",
+          "Amount": data.evidence.total_amount ?? "—",
+          "Currency": data.evidence.currency ?? "—",
+          "Threshold": data.evidence.threshold,
+        };
+
+        invoice.innerHTML = Object.entries(invoiceFields)
+          .map(([k, v]) => `
+        <div>
+          <span style="color:#6b7280; font-size:0.75rem;">${k}</span><br/>
+          <strong>${v}</strong>
+        </div>
+      `).join("");
+
+        timestamp.textContent = "Reviewed at " + formatDate(data.timestamp);
+
+        // Show the panel and scroll it into view
+        panel.style.display = "block";
+        panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+
+      } catch (err) {
+        showToast("Could not load review details.");
+      }
+    }
+
+    //   Close detail panel    
+    function closeDetail() {
+      document.getElementById("detailPanel").style.display = "none";
+    }
+
+  </script>
+
+</body>
+
+</html>
